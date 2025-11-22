@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getSoulMessage } from '../services/geminiService';
 import { ReadingResult, CardState } from '../types';
-import html2canvas from 'html2canvas';
+// html2canvas removed from top-level import to support lazy loading
 
 const TOTAL_CARDS = 55;
 
@@ -189,7 +189,7 @@ const TarotDeck: React.FC = () => {
         setCardState(CardState.Idle);
         console.error(e);
       }
-    }, 1000);
+    }, 2000); // Increased delay slightly to show off the animation
   };
 
   const closeReading = () => {
@@ -218,6 +218,9 @@ const TarotDeck: React.FC = () => {
     if (!captureRef.current) return;
     setIsCapturing(true);
     try {
+      // Lazy load html2canvas only when needed
+      const html2canvas = (await import('html2canvas')).default;
+      
       const canvas = await html2canvas(captureRef.current, {
         scale: 2,
         backgroundColor: '#020617', 
@@ -268,11 +271,20 @@ const TarotDeck: React.FC = () => {
             return (
               <div
                 key={`bar-${index}`}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleBarClick(index);
+                  }
+                }}
                 onClick={() => handleBarClick(index)}
                 className={`
                   relative w-1.5 md:w-2.5 rounded-full cursor-pointer transition-all duration-300 ease-out
                   ${cardState === CardState.Idle ? 'hover:scale-y-[1.8] hover:brightness-150 hover:bg-tech-300' : ''}
                   ${isSelected ? 'bg-soul-400 scale-y-[2] shadow-[0_0_20px_rgba(251,191,36,0.8)] z-50' : 'bg-slate-700/80'}
+                  outline-none focus:ring-2 focus:ring-tech-400 focus:ring-offset-2 focus:ring-offset-slate-950
                 `}
                 style={{
                   height: `${heightPercent}%`,
@@ -288,15 +300,53 @@ const TarotDeck: React.FC = () => {
         <div className="absolute bottom-1/2 left-0 right-0 h-[1px] bg-slate-800 w-full -z-10"></div>
       </div>
 
+      {/* TECH LOADING OVERLAY */}
       {cardState === CardState.Selecting && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-sm">
-          <div className="w-64 h-64 relative flex items-center justify-center">
-             <div className="absolute inset-0 border-2 border-slate-800 rounded-full"></div>
-             <div className="absolute inset-2 border-t-2 border-tech-500 rounded-full animate-spin"></div>
-             <div className="absolute inset-6 border-b-2 border-soul-500 rounded-full animate-[spin_1.5s_linear_infinite_reverse]"></div>
-             <div className="font-mono text-tech-400 text-4xl font-bold tracking-tighter animate-pulse">DECODING</div>
-          </div>
-          <div className="mt-4 text-slate-400 font-mono text-xs tracking-widest">正在讀取靈魂底層數據...</div>
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-md">
+           {/* Tech Grid Background for Overlay */}
+           <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-20"></div>
+
+           {/* Center HUD */}
+           <div className="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center">
+              {/* Ring 1: Fast Cyan Spin */}
+              <div className="absolute inset-0 border-t-2 border-l-2 border-tech-500/60 rounded-full animate-[spin_1.5s_linear_infinite] shadow-[0_0_15px_rgba(45,212,191,0.3)]"></div>
+              
+              {/* Ring 2: Slow Reverse Gold Spin */}
+              <div className="absolute inset-6 border-b-2 border-r-2 border-soul-500/60 rounded-full animate-[spin_3s_linear_infinite_reverse] shadow-[0_0_15px_rgba(251,191,36,0.3)]"></div>
+              
+              {/* Ring 3: Static Pulse Dashed */}
+              <div className="absolute inset-12 border border-slate-700 rounded-full border-dashed opacity-50 animate-pulse"></div>
+
+              {/* Crosshairs */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-4 bg-tech-500/50"></div>
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-4 bg-tech-500/50"></div>
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 w-4 bg-tech-500/50"></div>
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 h-1 w-4 bg-tech-500/50"></div>
+
+              {/* Center Content */}
+              <div className="relative flex flex-col items-center z-10">
+                 <div className="font-mono text-5xl md:text-6xl font-bold text-white tracking-tighter animate-[pulse_0.5s_ease-in-out_infinite] drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">
+                   DECODING
+                 </div>
+                 <div className="mt-2 px-2 py-0.5 bg-tech-900/50 border border-tech-500/30 text-tech-400 text-[10px] tracking-[0.3em] font-mono animate-bounce">
+                   SYSTEM KERNEL ACCESS
+                 </div>
+              </div>
+           </div>
+
+           {/* Progress Bar Area */}
+           <div className="mt-12 w-64 md:w-80 flex flex-col gap-2 relative z-10">
+              <div className="flex justify-between text-[10px] font-mono text-tech-400 uppercase tracking-wider">
+                 <span>Connecting...</span>
+                 <span className="animate-pulse">100%</span>
+              </div>
+              <div className="h-1.5 w-full bg-slate-800 rounded-sm overflow-hidden relative">
+                 <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-tech-500 to-soul-400 animate-[progress_2s_cubic-bezier(0.4,0,0.2,1)_infinite] shadow-[0_0_10px_rgba(45,212,191,0.5)]"></div>
+              </div>
+              <p className="text-center text-slate-500 font-mono text-xs tracking-widest mt-2 animate-pulse">
+                 正在讀取靈魂底層數據...
+              </p>
+           </div>
         </div>
       )}
 
@@ -340,7 +390,7 @@ const TarotDeck: React.FC = () => {
                         <div className="text-left">
                             <p className="text-sm font-bold text-slate-200 mb-3 flex items-center gap-2">
                                 <span className="w-5 h-5 rounded-full bg-tech-500 text-slate-900 flex items-center justify-center text-xs font-bold">1</span>
-                                你目前最想Debug類型
+                                你目前最想Debug問題
                             </p>
                             <div className="grid grid-cols-3 gap-2">
                                 {categories.map((cat) => (
@@ -414,7 +464,7 @@ const TarotDeck: React.FC = () => {
                                 : 'bg-tech-600 text-white hover:bg-tech-500 shadow-[0_0_15px_rgba(45,212,191,0.3)] hover:shadow-[0_0_25px_rgba(45,212,191,0.5)] transform hover:-translate-y-0.5'}
                           `}
                         >
-                           產生診斷報告
+                           產生Debug報告
                         </button>
                     </div>
                 </div>
@@ -422,9 +472,18 @@ const TarotDeck: React.FC = () => {
                 // MODE 2: Diagnostic Report & Capture
                 <div className="animate-in slide-in-from-right-4 fade-in duration-500">
                     {/* The Capture Card */}
-                    <div ref={captureRef} className="bg-slate-950 border border-slate-800 p-6 rounded-xl relative overflow-hidden shadow-2xl mb-8">
+                    <div ref={captureRef} className="bg-slate-950 border border-slate-800 p-6 rounded-xl relative overflow-hidden shadow-2xl mb-8 group/capture ring-1 ring-slate-800/50">
+                        {/* Background Pattern for Report */}
+                        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(45,212,191,0.05)_50%,transparent_75%,transparent_100%)] bg-[size:20px_20px] opacity-20 pointer-events-none"></div>
+
+                        {/* Viewfinder/Corner Markers */}
+                        <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-tech-500/60 rounded-tl-md"></div>
+                        <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-tech-500/60 rounded-tr-md"></div>
+                        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-tech-500/60 rounded-bl-md"></div>
+                        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-tech-500/60 rounded-br-md"></div>
+                        
                         {/* Tech Decoration */}
-                        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-tech-500 via-soul-400 to-tech-500"></div>
+                        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-tech-500 via-soul-400 to-tech-500 opacity-50"></div>
                         <div className="absolute top-4 left-4 w-2 h-2 bg-tech-500 rounded-full animate-pulse"></div>
                         <div className="absolute top-4 right-4 font-mono text-[10px] text-slate-500 tracking-widest">DIAGNOSTIC ID: {Math.floor(Math.random() * 10000)}</div>
                         
@@ -441,12 +500,12 @@ const TarotDeck: React.FC = () => {
                         </div>
 
                         {/* User Data Grid */}
-                        <div className="grid grid-cols-2 gap-4 border-t border-slate-800 pt-4">
-                            <div className="bg-slate-900/50 p-3 rounded border border-slate-800">
+                        <div className="grid grid-cols-2 gap-4 border-t border-slate-800 pt-4 relative z-10">
+                            <div className="bg-slate-900/80 p-3 rounded border border-slate-800">
                                 <p className="text-[10px] text-slate-500 font-mono uppercase">Subject</p>
                                 <p className="text-white font-bold text-sm">{userName}</p>
                             </div>
-                            <div className="bg-slate-900/50 p-3 rounded border border-slate-800">
+                            <div className="bg-slate-900/80 p-3 rounded border border-slate-800">
                                 <p className="text-[10px] text-slate-500 font-mono uppercase">Origin</p>
                                 <p className="text-white font-bold text-sm">{birthYear}</p>
                             </div>
@@ -461,7 +520,7 @@ const TarotDeck: React.FC = () => {
                             </div>
                         </div>
                         
-                        <div className="mt-4 flex justify-between items-end">
+                        <div className="mt-4 flex justify-between items-end relative z-10">
                              <div className="flex flex-col">
                                  <span className="text-[8px] text-slate-600 font-mono">SCANNER</span>
                                  <span className="text-[10px] text-slate-400 font-bold">靈魂工程師</span>
@@ -477,18 +536,27 @@ const TarotDeck: React.FC = () => {
 
                     {/* Action Buttons */}
                     <div className="space-y-4">
-                        <p className="text-center text-xs text-slate-400 mb-2">步驟四：保存與預約</p>
+                        {/* Prominent Instruction with Camera Icon */}
+                        <div className="flex flex-col items-center justify-center gap-2 mb-2">
+                           <div className="flex items-center gap-2 text-soul-400 bg-soul-400/10 px-4 py-2 rounded-full border border-soul-400/20 animate-pulse-soft">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <span className="font-bold text-sm tracking-wide">螢幕截圖後，預約回傳</span>
+                           </div>
+                        </div>
                         
                         <button 
                            onClick={handleScreenshot}
-                           className="w-full flex items-center justify-center gap-2 py-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 hover:text-white text-slate-300 transition-all text-sm font-medium"
+                           className="w-full flex items-center justify-center gap-2 py-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 hover:text-white text-slate-300 transition-all text-sm font-medium touch-manipulation active:scale-95"
                         >
                            {isCapturing ? (
                              <span className="flex items-center gap-2"><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div> 處理中...</span>
                            ) : (
                              <>
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                保存診斷報告
+                                儲存Debug報告
                              </>
                            )}
                         </button>
@@ -503,7 +571,7 @@ const TarotDeck: React.FC = () => {
                                     const el = document.getElementById('contact');
                                     el?.scrollIntoView({ behavior: 'smooth' });
                                 }}
-                                className="group flex items-center justify-center gap-2 w-full py-4 px-8 bg-gradient-to-r from-soul-500 to-tech-600 hover:from-soul-400 hover:to-tech-500 text-white font-bold text-base tracking-widest rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] transition-all transform hover:-translate-y-1"
+                                className="group flex items-center justify-center gap-2 w-full py-4 px-8 bg-gradient-to-r from-soul-500 to-tech-600 hover:from-soul-400 hover:to-tech-500 text-white font-bold text-base tracking-widest rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] transition-all transform hover:-translate-y-1 active:translate-y-0 touch-manipulation"
                             >
                                 預約Debug
                                 <span className="group-hover:translate-x-1 transition-transform">→</span>
@@ -512,7 +580,7 @@ const TarotDeck: React.FC = () => {
                         
                         <button 
                           onClick={() => setShowReport(false)} 
-                          className="w-full text-xs text-slate-500 hover:text-slate-400 underline mt-2"
+                          className="w-full text-xs text-slate-500 hover:text-slate-400 underline mt-2 py-2 touch-manipulation"
                         >
                             返回修改資料
                         </button>
@@ -529,6 +597,14 @@ const TarotDeck: React.FC = () => {
         @keyframes pulse-height {
           0%, 100% { transform: scaleY(1); opacity: 0.8; }
           50% { transform: scaleY(1.3); opacity: 1; }
+        }
+        @keyframes progress {
+          0% { width: 0%; opacity: 0.5; }
+          20% { width: 10%; opacity: 1; }
+          40% { width: 40%; opacity: 0.8; }
+          60% { width: 50%; opacity: 1; }
+          80% { width: 85%; opacity: 0.8; }
+          100% { width: 100%; opacity: 1; }
         }
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;

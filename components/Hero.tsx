@@ -1,14 +1,6 @@
 import React from 'react';
 
 const Hero: React.FC = () => {
-  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    e.preventDefault();
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 pb-10 bg-slate-950">
       {/* Dark Tech Background Elements */}
@@ -65,7 +57,6 @@ const Hero: React.FC = () => {
         <div className="mt-12 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
           <a 
             href="#tarot-draw" 
-            onClick={(e) => scrollToSection(e, 'tarot-draw')}
             className="group relative inline-flex items-center justify-center px-8 py-4 font-sans font-bold text-base overflow-hidden text-slate-950 transition-all duration-300 bg-tech-400 rounded-full shadow-[0_0_20px_rgba(45,212,191,0.4)] hover:shadow-[0_0_30px_rgba(45,212,191,0.6)] hover:-translate-y-1 hover:bg-tech-300 cursor-pointer w-full md:w-auto"
           >
             <span className="absolute w-0 h-0 transition-all duration-500 ease-out bg-white rounded-full group-hover:w-64 group-hover:h-64 opacity-20"></span>
@@ -77,7 +68,6 @@ const Hero: React.FC = () => {
 
           <a 
             href="#about" 
-            onClick={(e) => scrollToSection(e, 'about')}
             className="group relative inline-flex items-center justify-center px-8 py-4 font-sans font-bold text-base overflow-hidden text-slate-300 border border-slate-600 transition-all duration-300 rounded-full hover:border-soul-400 hover:text-soul-400 hover:bg-slate-900/50 cursor-pointer w-full md:w-auto"
           >
              <span className="tracking-widest flex items-center justify-center gap-2">

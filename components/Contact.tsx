@@ -21,22 +21,21 @@ const Contact: React.FC = () => {
                 <h3 className="text-2xl md:text-3xl font-bold text-white tracking-wide">
                     Debug你的靈魂數據
                 </h3>
-                <div className="text-slate-300 text-lg leading-loose tracking-wide font-light space-y-4">
+                
+                <div className="text-slate-300 text-lg leading-loose tracking-wide font-light space-y-6">
                     <p>
-                        這是一句符合你現況的靈魂數據。
+                        你看到的這句話，<br />
+                        就是靈魂在丟給你的 <span className="text-white font-medium">提示訊號</span>。
                     </p>
                     <p>
-                        如果你需要一個邏輯清晰的行動方案，歡迎預約
-                        <span className="inline-block border-b border-tech-500/50 text-tech-400 font-bold mx-1 pb-0.5 hover:text-tech-300 transition-colors">【靈魂Debug】</span>
+                        想更清楚現在到底卡在哪？<br />
+                        歡迎預約
+                        <span className="inline-block border-b border-tech-500/50 text-tech-400 font-bold mx-1 pb-0.5 hover:text-tech-300 transition-colors">靈魂 Debug</span>。
                     </p>
-                    <p className="flex items-center flex-wrap gap-1">
-                        貼上截圖
-                        <svg className="w-4 h-4 text-slate-400 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        ，讓我協助你，
-                    </p>
-                    <p className="flex items-center flex-wrap gap-1">
-                        找出影響你人生的關鍵
-                        <span className="text-soul-400 font-mono font-bold">Bug</span>
+                    <p>
+                        截圖給我，<br />
+                        我帶你一起找到那個真正卡住你的
+                        <span className="text-soul-400 font-mono font-bold mx-1">關鍵 Bug</span>
                         <svg className="w-4 h-4 text-soul-400 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
                         。
                     </p>
